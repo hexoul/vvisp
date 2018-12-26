@@ -21,7 +21,7 @@ module.exports = async function(filePath, silent) {
       }
       input = Object.assign(input, {
         // TODO: survey what if we don't use Object.assign
-        [filePath[i]]: fs.readFileSync(filePath[i], 'utf8')
+        [filePath[i]]: { content: fs.readFileSync(filePath[i], 'utf8') }
       });
     }
   } else if (typeof filePath === 'string') {
@@ -29,14 +29,23 @@ module.exports = async function(filePath, silent) {
       console.log('build ' + filePath + '...');
     }
     input = Object.assign(input, {
-      [filePath]: fs.readFileSync(filePath, 'utf8')
+      [filePath]: { content: fs.readFileSync(filePath, 'utf8') }
     });
   } else {
     throw new TypeError('Invalid Type'); //TODO more informative error: e.g. "Your argumet is:"" but this is not valid inpout"
   }
   const compileOutput = solc.compile(
-    { sources: input },
-    process.env.SOLC_OPTIMIZATION === 'false' ? 0 : 1,
+    {
+      language: 'Solidity',
+      settings: {
+        outputSelection: {
+          '*': {
+            '*': ['evm.bytecode']
+          }
+        }
+      },
+      sources: input
+    },
     findImports
   );
 
